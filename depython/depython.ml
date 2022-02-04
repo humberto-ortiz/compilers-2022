@@ -18,7 +18,24 @@ type prog = Module of stm list
 
 let p1 = Module [Assign ("a", BinOp (Add, Num 5, Num 4))];;
 
-let rec interp e =
+let interpop op =
+  match op with
+    | Add -> (+)
+    | Sub -> (-)
+    | Mul -> ( * )
+    | Div -> (/)
+
+let rec interp_expr e =
   match e with
     | Num x -> x
-    | BinOp (Add, e1, e2) -> interp e1 + interp e2
+    | BinOp (op, e1, e2) -> (interpop op) (interp_expr e1) (interp_expr e2)
+
+let interp_stm s =
+  match s with
+  | Expr e -> interp_expr e; ()
+  | Print e -> print_int (interp_expr e) ; print_newline ()
+
+let rec interp_prog p =
+  match p with
+  | Module [] -> ()
+  | Module (stm::stms) -> interp_stm stm ; (interp_prog (Module stms))
