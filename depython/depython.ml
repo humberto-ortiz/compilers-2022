@@ -8,6 +8,7 @@ type binop = Add | Sub | Mul | Div
 type expr =
  | BinOp of binop * expr * expr
  | Num of int
+ | Name of string
 
 type stm =
  | Expr of expr
