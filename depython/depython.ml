@@ -1,4 +1,4 @@
-(* depython - data types for representing python code 
+(* depython - data types for representing python code
    Copyright 2022 Humberto Ortiz-Zuazaga <humberto.ortiz@upr.edu>
    See LICENSE file for details.
 *)
@@ -26,17 +26,39 @@ let interpop op =
     | Mul -> ( * )
     | Div -> (/)
 
-let rec interp_expr e =
+let rec lookup (id, env) =
+  match env with
+  | [] -> raise Not_found
+  | ((v, e)::rest) ->
+     if (v = id) then
+       e
+     else
+       lookup (id, rest)
+
+let rec interp_expr (e, env) =
   match e with
     | Num x -> x
-    | BinOp (op, e1, e2) -> (interpop op) (interp_expr e1) (interp_expr e2)
+    | BinOp (op, e1, e2) -> (interpop op)
+                              (interp_expr (e1, env))
+                              (interp_expr (e2, env))
+    | Name id -> (interp_expr (lookup (id, env), env))
 
-let interp_stm s =
+let update (id, e, env) =
+  (id, e)::env
+
+let interp_stm (s, env) =
   match s with
-  | Expr e -> interp_expr e; ()
-  | Print e -> print_int (interp_expr e) ; print_newline ()
+  | Expr e -> interp_expr (e, env); env
+  | Print e -> print_int (interp_expr (e, env)) ; print_newline () ; env
+  | Assign (id, e) -> update (id, e, env)
 
-let rec interp_prog p =
+let rec interp_stms (stms, env) =
+  match stms with
+  | [] -> env
+  | (stm::stms) ->
+     let env' = interp_stm (stm, env) in
+     interp_stms (stms, env')
+
+let interp_prog p =
   match p with
-  | Module [] -> ()
-  | Module (stm::stms) -> interp_stm stm ; (interp_prog (Module stms))
+  | Module stms -> interp_stms (stms, [])
