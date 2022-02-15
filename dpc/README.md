@@ -2,7 +2,8 @@
 
 This folder will hold a depython compiler.
 
-For now, it can only compile integers, following the example in Lecture 3.
+For now, it can only compile integers, following the first example compiler in
+[Lecture 3](https://course.ccs.neu.edu/cs4410/lec_let-and-stack_notes.html).
 
 If you have a depython program like `uno.dp`:
 
