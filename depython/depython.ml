@@ -28,7 +28,7 @@ let interpop op =
 
 let rec lookup (id, env) =
   match env with
-  | [] -> raise Not_found
+  | [] -> raise (Failure "No hay na'")
   | ((v, e)::rest) ->
      if (v = id) then
        e
@@ -48,7 +48,11 @@ let update (id, e, env) =
 
 let interp_stm (s, env) =
   match s with
-  | Expr e -> interp_expr (e, env); env
+  | Expr e ->
+     let
+       _ = interp_expr (e, env)
+     in
+     env
   | Print e -> print_int (interp_expr (e, env)) ; print_newline () ; env
   | Assign (id, e) -> update (id, e, env)
 
