@@ -58,7 +58,8 @@ our_code_starts_here:
 (* Some OCaml boilerplate for reading files and command-line arguments *)
 let () =
   let input_file = (open_in (Sys.argv.(1))) in
-  let input_program = Num (Int64.of_string (input_line input_file)) in
+  let lexbuf = Lexing.from_channel input_file in
+  let input_program = Parser.expr Lexer.read lexbuf in
   close_in input_file;
   let program = (compile_prog input_program) in
   printf "%s\n" program;;
