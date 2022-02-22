@@ -1,9 +1,5 @@
 open Printf
-
-type expr = 
-  | Num of int64
-  | Add1 of expr
-  | Sub1 of expr
+open Syntax
 
 let rec interp_expr (e : expr) : int64 =
   match e with
@@ -41,7 +37,7 @@ let inst_to_string (inst : instruction) : string =
   | ISub (a, b) -> "sub " ^ (arg_to_string a) ^ ", " ^
                      (arg_to_string b)
 
-let rec asm_to_string (asm : instruction list) : string =
+let asm_to_string (asm : instruction list) : string =
   String.concat "\n\t" (List.map inst_to_string asm)
 
 let rec compile_expr (e : expr) : instruction list =
@@ -62,7 +58,7 @@ our_code_starts_here:
 (* Some OCaml boilerplate for reading files and command-line arguments *)
 let () =
   let input_file = (open_in (Sys.argv.(1))) in
-  let input_program = Int64.of_string (input_line input_file) in
+  let input_program = Num (Int64.of_string (input_line input_file)) in
   close_in input_file;
   let program = (compile_prog input_program) in
   printf "%s\n" program;;
