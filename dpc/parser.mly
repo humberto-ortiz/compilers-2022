@@ -1,3 +1,4 @@
+
 %{
 open Syntax
 %}
@@ -14,3 +15,5 @@ open Syntax
 (* reglas aqui *)
 expr:
  | n = NUMBER { Num n }
+ | ADD1 LPAREN e = expr RPAREN  { Add1 e } 
+ | SUB1 LPAREN e = expr RPAREN  { Sub1 e }

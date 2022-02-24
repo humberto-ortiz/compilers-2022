@@ -5,4 +5,4 @@
 	nasm -f elf64 -o $@ $<
 
 %.s: %.dp
-	ocaml compiler.ml $< > $@
+	dune exec ./compiler.exe $< > $@
