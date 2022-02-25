@@ -1,12 +1,6 @@
 open Printf
 open Syntax
 
-let rec interp_expr (e : expr) : int64 =
-  match e with
-  | Num n -> n
-  | Add1 ea -> Int64.add 1L (interp_expr ea)
-  | Sub1 es -> Int64.add (-1L) (interp_expr es)
-
 type reg = 
   | RAX
 
@@ -45,6 +39,7 @@ let rec compile_expr (e : expr) : instruction list =
   | Num n -> [IMov (Reg RAX, Constant n)]
   | Add1 ea -> (compile_expr ea) @ [IAdd (Reg RAX, Constant 1L)]
   | Sub1 es -> (compile_expr es) @ [ISub (Reg RAX, Constant 1L)]
+  | _ -> failwith "No se compilar eso todavia"
 ;;
 
 let compile_prog (e : expr) : string =
@@ -57,9 +52,10 @@ our_code_starts_here:
 
 (* Some OCaml boilerplate for reading files and command-line arguments *)
 let () =
-  let input_file = (open_in (Sys.argv.(1))) in
-  let lexbuf = Lexing.from_channel input_file in
-  let input_program = Parser.expr Lexer.read lexbuf in
-  close_in input_file;
-  let program = (compile_prog input_program) in
-  printf "%s\n" program;;
+  if 2 = Array.length Sys.argv then
+    let input_file = (open_in (Sys.argv.(1))) in
+    let lexbuf = Lexing.from_channel input_file in
+    let input_program = Parser.expr Lexer.read lexbuf in
+    close_in input_file;
+    let program = (compile_prog input_program) in
+    printf "%s\n" program;;
