@@ -1,0 +1,6 @@
+(executable
+        (name pretty))
+
+(menhir (modules parser))
+
+(ocamllex lexer)
