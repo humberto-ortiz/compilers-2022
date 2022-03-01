@@ -1,5 +1,5 @@
 (executables
-        (names compiler pretty)
+        (names compiler pretty interp)
 )
 
 (menhir (modules parser))
