@@ -23,7 +23,7 @@ let rec pretty_expr expr =
 let () =
   let input_file = (open_in (Sys.argv.(1))) in
   let lexbuf = Lexing.from_channel input_file in
-  let input_program = Parser.expr Lexer.read lexbuf in
+  let input_program = Parser.start Lexer.read lexbuf in
   close_in input_file;
   let program = (pretty_expr input_program) in
   printf "%s\n" program;;
