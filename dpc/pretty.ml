@@ -18,6 +18,7 @@ let rec pretty_expr expr =
      pretty_expr e1 ^ ", " ^
      pretty_expr e2 ^
      ")"
+  | _ -> failwith "No se que hacer"
 
 (* Some OCaml boilerplate for reading files and command-line arguments *)
 let () =
