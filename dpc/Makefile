@@ -1,8 +1,9 @@
 %.run: %.o
-	gcc -g -m64 -o $@ main.c $<
+# Remember to run with arch -x86_64
+	clang -o myTool-x86_64 -mmacosx-version-min=10.15 -arch x86_64 -o $@ main.c $<
 
 %.o: %.s
-	nasm -f elf64 -o $@ $<
+	nasm -f macho64 -o $@ $<
 
 %.s: %.dp
 	dune exec ./compiler.exe $< > $@
