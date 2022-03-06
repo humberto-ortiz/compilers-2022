@@ -13,4 +13,7 @@ rule read =
     | ')' { RPAREN }
     | "add1" { ADD1 }
     | "sub1" { SUB1 }
+    | "+" { PLUS }
+    | "-" { MINUS }
+    | "*" { TIMES }
     | eof { EOF }
