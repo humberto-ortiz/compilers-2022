@@ -81,13 +81,15 @@ let rec compile_expr (e : expr) (env : env) : instruction list =
      let if_done = gensym "done" in
      let if_true = gensym "if_true" in
      let if_false = gensym "if_false" in
+     (* comparacion *)
      compile_expr e1 env
     @ [ ICmp (Reg RAX, Constant 0L) ;
         IJe if_false ]
-  (* algo algo *)
+    (*  if_true *)
     @ [ ILabel if_true ]
     @ compile_expr e2 env 
     @ [ IJmp if_done ;
+        (* if_false *)
         ILabel if_false ]
     @ compile_expr e3 env
     @ [ ILabel if_done ]
@@ -99,7 +101,7 @@ let compile_prog (e : expr) : string =
   sprintf "section .text
 global our_code_starts_here
 our_code_starts_here:
-\t" ^ prog_string ^ "
+" ^ prog_string ^ "
         ret\n" 
 
 (* Some OCaml boilerplate for reading files and command-line arguments *)
