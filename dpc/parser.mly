@@ -11,6 +11,9 @@ open Syntax
 %token <string> IDENTIFIER
 %token EQUAL
 %token IN
+%token IF
+%token COLON
+%token ELSE
 
 %start <expr> expr
 
@@ -23,3 +26,4 @@ expr:
  | SUB1 LPAREN e = expr RPAREN  { Sub1 e }
  | LET id = IDENTIFIER EQUAL e1 = expr IN e2 = expr { Let (id, e1, e2) }
  | id = IDENTIFIER { Id id }
+ | IF e1 = expr COLON e2 = expr ELSE e3 = expr { If (e1, e2, e3) }

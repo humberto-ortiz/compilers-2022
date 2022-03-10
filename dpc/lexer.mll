@@ -16,5 +16,8 @@ rule read =
     | "sub1" { SUB1 }
     | "let" { LET }
     | '=' { EQUAL }
-    | "in" { IN } 
+    | "in" { IN }
+    | "if" { IF }
+    | ':' { COLON }
+    | "else:" { ELSE }
     | letter (letter | digit | '_' )* as lxm { IDENTIFIER lxm }

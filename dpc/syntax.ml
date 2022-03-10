@@ -10,3 +10,4 @@ type expr =
   | EPrim2 of prim2 * expr * expr
   | Id of string
   | Let of string * expr * expr
+  | If of expr * expr * expr
