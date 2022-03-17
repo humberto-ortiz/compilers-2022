@@ -81,10 +81,29 @@ let rec is_anf e =
   | If (e1, e2, e3) -> is_imm e1 && is_anf e2 && is_anf e3
   | _ -> is_imm e
 
+let rec anf (e : expr) =
+  if is_anf e then e
+  else
+  match e with
+  | Add1 e -> 
+     let varname = gensym "_add1" in
+     Let (varname, anf e, Add1 (Id varname))
+  | _ -> failwith "no se como convertirlo a anf (todavia)"
+
+
 let rec compile_expr (e : expr) (env : env) : instruction list =
+  let imm_to_arg (e : expr) : arg =
+    (* e tiene que ser un imm *)
+    match e with
+    | Num n -> Constant n
+    | Id id -> RegOffset (RSP, lookup id env)
+    | _ -> failwith "No es un immediato"
+  in
   match e with
   | Num n -> [IMov (Reg RAX, Constant n)]
-  | Add1 ea -> (compile_expr ea env) @ [IAdd (Reg RAX, Constant 1L)]
+  | Add1 ea -> [IMov (Reg RAX, imm_to_arg ea) ;
+                IAdd (Reg RAX, Constant 1L)]
+  (* ESTE COMPILADOR ESTA BIEN ROTO *)
   | Sub1 es -> (compile_expr es env) @ [ISub (Reg RAX, Constant 1L)]
   | Id id ->
      [ IMov (Reg RAX, RegOffset (RSP, lookup id env)) ]
