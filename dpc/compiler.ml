@@ -65,6 +65,22 @@ let gensym =
     counter := !counter + 1;
     sprintf "%s_%d" basename !counter);;
 
+let is_imm e =
+  match e with
+  | Num _ -> true
+  | Id _ -> true
+  | _ -> false
+;;
+
+let rec is_anf e =
+  match e with
+  | Add1 e -> is_imm e
+  | Sub1 e -> is_imm e
+  | EPrim2 (_, e1, e2) -> (is_imm e1) && (is_imm e2)
+  | Let (_, e1, e2) -> (is_anf e1) && (is_anf e2)
+  | If (e1, e2, e3) -> is_imm e1 && is_anf e2 && is_anf e3
+  | _ -> is_imm e
+
 let rec compile_expr (e : expr) (env : env) : instruction list =
   match e with
   | Num n -> [IMov (Reg RAX, Constant n)]
