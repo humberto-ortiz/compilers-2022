@@ -88,6 +88,21 @@ let rec anf (e : expr) =
   | Add1 e -> 
      let varname = gensym "_add1" in
      Let (varname, anf e, Add1 (Id varname))
+  | Sub1 e -> 
+     let varname = gensym "_sub1" in
+     Let (varname, anf e, Sub1 (Id varname))
+  | EPrim2 (op, left, right) ->
+     let leftname = gensym "_left" in
+     let rightname = gensym "_right" in
+     Let (leftname, anf left, 
+          Let (rightname, anf right, 
+               EPrim2 (op, Id leftname, Id rightname)))
+  | Let (v, e1, e2) ->
+     Let (v, anf e1, anf e2)
+  | If (e1, e2, e3) ->
+     let e1id = gensym "_e1" in
+     Let (e1id, anf e1, 
+          If (Id e1id, anf e2, anf e3))
   | _ -> failwith "no se como convertirlo a anf (todavia)"
 
 
@@ -103,8 +118,15 @@ let rec compile_expr (e : expr) (env : env) : instruction list =
   | Num n -> [IMov (Reg RAX, Constant n)]
   | Add1 ea -> [IMov (Reg RAX, imm_to_arg ea) ;
                 IAdd (Reg RAX, Constant 1L)]
-  (* ESTE COMPILADOR ESTA BIEN ROTO *)
-  | Sub1 es -> (compile_expr es env) @ [ISub (Reg RAX, Constant 1L)]
+  | Sub1 es -> [ IMov (Reg RAX, imm_to_arg es) ;
+                 ISub (Reg RAX, Constant 1L)]
+  | EPrim2 (Plus, left, right) ->
+     [ IMov (Reg RAX, imm_to_arg left) ;
+       IAdd (Reg RAX, imm_to_arg right) ]
+  | EPrim2 (Minus, left, right) ->
+     [ IMov (Reg RAX, imm_to_arg left) ;
+       ISub (Reg RAX, imm_to_arg right) ]
+  (* ESTE COMPILADOR ESTA un poco ROTO *)
   | Id id ->
      [ IMov (Reg RAX, RegOffset (RSP, lookup id env)) ]
   | Let (id, e1, e2) ->
@@ -143,5 +165,6 @@ our_code_starts_here:
 let () =
   if 2 = Array.length Sys.argv then
     let input_program = Front.parse_file (Sys.argv.(1)) in
-    let program = (compile_prog input_program) in
+    let anfed = anf input_program in
+    let program = (compile_prog anfed) in
     printf "%s\n" program;;
