@@ -18,7 +18,7 @@ aexpr
  -->
 compile_aexpr
  -->
-instruction list
+inst[/instruction list/]
  -->
 asm_to_string
  -->
@@ -28,9 +28,10 @@ nasm
  -->
 foo.o
  -->
-gcc <-- main.c
+gcc
  -->
 foo.run
 mll[lexer.mll] --> lexer
 mly[parser.mly] --> parser.ml
+main.c --> gcc
 ```
