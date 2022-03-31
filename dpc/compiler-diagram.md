@@ -33,6 +33,6 @@ gcc[[gcc]]
 run[/foo.run/]
 
 mll[lexer.mll] --> lexer
-mly[parser.mly] --> parser.ml
+mly[parser.mly] --> parser
 main.c --> gcc
 ```
