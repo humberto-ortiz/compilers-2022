@@ -4,7 +4,7 @@ Diagram of our compiler so far.
 flowchart TD
 in[/foo.dp/]
  -->
-lexer[[lexer]] <-- mll[lexer.mll]
+lexer[[lexer]] 
  -->
 tok[/list of tokens/]
  -->
@@ -31,4 +31,6 @@ foo.o
 gcc <-- main.c
  -->
 foo.run
+mll[lexer.mll] --> lexer
+mly[parser.mly] --> parser.ml
 ```
