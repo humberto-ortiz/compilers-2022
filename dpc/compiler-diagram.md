@@ -8,7 +8,7 @@ lexer[[lexer]]
  -->
 tok[/list of tokens/]
  -->
-parser.ml <-- mly[parser.mly]
+parser.ml
  -->
 expr
  -->
