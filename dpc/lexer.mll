@@ -15,9 +15,18 @@ rule read =
     | "add1" { ADD1 }
     | "sub1" { SUB1 }
     | "let" { LET }
+    | "==" { D_EQUAL }
     | '=' { EQUAL }
     | "in" { IN }
     | "if" { IF }
     | ':' { COLON }
     | "else:" { ELSE }
+    | "true" { TRUE }
+    | "false" { FALSE }
+    | "!=" { NOT_EQ }
+    | "!" { NOT }
+    | "&&" { AND }
+    | "||" { OR }
+    | "<=" { LESS_EQUAL }
+    | "<" { LESS }
     | letter (letter | digit | '_' )* as lxm { IDENTIFIER lxm }

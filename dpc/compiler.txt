@@ -1,0 +1,29 @@
+foo.dp
+ |
+lexer.ml <- lexer.mll (regular expressions)
+ |
+list of tokens
+ |
+parser.ml <- parser.mly (CFG)
+ |
+expr
+ |
+anfv2
+ |
+aexpr
+ |
+compile_aexpr
+ |
+instruction list
+ |
+asm_to_string
+ |
+assembly
+ |
+nasm
+ |
+object file
+ |
+gcc <- main.c
+ |
+foo.run

@@ -112,12 +112,10 @@ let rec anf (e : expr) =
 let rec anfv2 (e : expr) : aexpr =
   match e with
   | Num n -> AImm (ImmNum n)
-  | Add1 e -> 
-     let varname = gensym "_add1" in
-     ALet (varname, anfv2 e, AAdd1 (ImmId varname))
-  | Sub1 e -> 
-     let varname = gensym "_sub1" in
-     ALet (varname, anfv2 e, ASub1 (ImmId varname))
+  | EBool b -> AImm (ImmBool b)
+  | EPrim1 (op, e) -> 
+     let varname = gensym "_prim1" in
+     ALet (varname, anfv2 e, APrim1 (op, ImmId varname))
   | EPrim2 (op, left, right) ->
      let leftname = gensym "_left" in
      let rightname = gensym "_right" in

@@ -5,4 +5,4 @@ depython
 : interpretador para un subconjunto de python
 
 dpc
-: compilador para "depython"
+: compilador para un lenguaje raro que no es "depython"
