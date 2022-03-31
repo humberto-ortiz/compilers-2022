@@ -8,29 +8,30 @@ lexer[[lexer]]
  -->
 tok[/list of tokens/]
  -->
-parser.ml
+parser[[parser]]
  -->
-expr
+expr[/expr/]
  -->
-anfv2
+anfv2[[anfv2]
  -->
-aexpr
+aexpr[/aexpr/]
  -->
-compile_aexpr
+comp[[compile_aexpr]]
  -->
 inst[/instruction list/]
  -->
-asm_to_string
+asm[[asm_to_string]]
  -->
-foo.s
+s[/foo.s/]
  -->
-nasm
+nasm[[nasm]
  -->
-foo.o
+obj[/foo.o/]
  -->
-gcc
+gcc[[gcc]]
  -->
-foo.run
+run[/foo.run/]
+
 mll[lexer.mll] --> lexer
 mly[parser.mly] --> parser.ml
 main.c --> gcc
