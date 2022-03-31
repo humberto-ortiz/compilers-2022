@@ -12,7 +12,7 @@ parser[[parser]]
  -->
 expr[/expr/]
  -->
-anfv2[[anfv2]
+anfv2[[anfv2]]
  -->
 aexpr[/aexpr/]
  -->
@@ -24,7 +24,7 @@ asm[[asm_to_string]]
  -->
 s[/foo.s/]
  -->
-nasm[[nasm]
+nasm[[nasm]]
  -->
 obj[/foo.o/]
  -->
