@@ -30,3 +30,4 @@ rule read =
     | "<=" { LESS_EQUAL }
     | "<" { LESS }
     | letter (letter | digit | '_' )* as lxm { IDENTIFIER lxm }
+    | eof { EOF }

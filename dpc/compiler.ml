@@ -20,6 +20,8 @@ type instruction =
   | IJe of string
   | IJmp of string
   | ILabel of string
+  | ISar of arg * arg
+  | IXor of arg * arg
 
 let reg_to_string r =
   match r with
@@ -48,6 +50,10 @@ let inst_to_string (inst : instruction) : string =
   | IJe label -> "\tje " ^ label
   | IJmp label -> "\tjmp " ^ label
   | ILabel label -> label ^ ":"
+  | ISar (a, b) -> "\tsar " ^ arg_to_string a ^ ", " ^
+                     arg_to_string b
+  | IXor (a, b) -> "\txor " ^ arg_to_string a ^ ", " ^
+                     arg_to_string b
 
 let asm_to_string (asm : instruction list) : string =
   String.concat "\n" (List.map inst_to_string asm)
@@ -68,46 +74,6 @@ let gensym =
   (fun basename ->
     counter := !counter + 1;
     sprintf "%s_%d" basename !counter);;
-
-let is_imm e =
-  match e with
-  | Num _ -> true
-  | Id _ -> true
-  | _ -> false
-;;
-
-let rec is_anf e =
-  match e with
-  | Add1 e -> is_imm e
-  | Sub1 e -> is_imm e
-  | EPrim2 (_, e1, e2) -> (is_imm e1) && (is_imm e2)
-  | Let (_, e1, e2) -> (is_anf e1) && (is_anf e2)
-  | If (e1, e2, e3) -> is_imm e1 && is_anf e2 && is_anf e3
-  | _ -> is_imm e
-
-let rec anf (e : expr) =
-  if is_anf e then e
-  else
-  match e with
-  | Add1 e -> 
-     let varname = gensym "_add1" in
-     Let (varname, anf e, Add1 (Id varname))
-  | Sub1 e -> 
-     let varname = gensym "_sub1" in
-     Let (varname, anf e, Sub1 (Id varname))
-  | EPrim2 (op, left, right) ->
-     let leftname = gensym "_left" in
-     let rightname = gensym "_right" in
-     Let (leftname, anf left, 
-          Let (rightname, anf right, 
-               EPrim2 (op, Id leftname, Id rightname)))
-  | Let (v, e1, e2) ->
-     Let (v, anf e1, anf e2)
-  | If (e1, e2, e3) ->
-     let e1id = gensym "_e1" in
-     Let (e1id, anf e1, 
-          If (Id e1id, anf e2, anf e3))
-  | _ -> failwith "no se como convertirlo a anf (todavia)"
 
 let rec anfv2 (e : expr) : aexpr =
   match e with
@@ -135,15 +101,19 @@ let rec compile_aexpr (e : aexpr) (env : env) : instruction list =
   let imm_to_arg (e : immexpr) : arg =
     (* e tiene que ser un imm *)
     match e with
-    | ImmNum n -> Constant n
+    | ImmNum n -> Constant (Int64.mul n  2L)
     | ImmId id -> RegOffset (RSP, lookup id env)
+    | ImmBool true -> Constant 0x80000000000001L
+    | ImmBool false -> Constant 0x1L
   in
   match e with
   | AImm imm -> [IMov (Reg RAX, imm_to_arg imm)]
-  | AAdd1 imm -> [IMov (Reg RAX, imm_to_arg imm) ;
-                IAdd (Reg RAX, Constant 1L)]
-  | ASub1 imm -> [ IMov (Reg RAX, imm_to_arg imm) ;
-                 ISub (Reg RAX, Constant 1L)]
+  | APrim1 (Add1, imm) -> [IMov (Reg RAX, imm_to_arg imm) ;
+                IAdd (Reg RAX, Constant 2L)]
+  | APrim1 (Sub1, imm) -> [ IMov (Reg RAX, imm_to_arg imm) ;
+                 ISub (Reg RAX, Constant 2L)]
+  | APrim1 (Not, imm) -> [ IMov (Reg RAX, imm_to_arg imm) ;
+                 IXor (Reg RAX, Constant 0x80000000000000L)]
   | APrim2 (Plus, left, right) ->
      [ IMov (Reg RAX, imm_to_arg left) ;
        IAdd (Reg RAX, imm_to_arg right) ]
@@ -152,8 +122,9 @@ let rec compile_aexpr (e : aexpr) (env : env) : instruction list =
        ISub (Reg RAX, imm_to_arg right) ]
   | APrim2 (Times, left, right) ->
      [ IMov (Reg RAX, imm_to_arg left) ;
-       IImul (Reg RAX, imm_to_arg right) ]
-  (* ESTE COMPILADOR ESTA un poco ROTO *)
+       IImul (Reg RAX, imm_to_arg right) ;
+     ISar (Reg RAX, Constant 1L) ]
+  (* ESTE COMPILADOR ESTA ROTO *)
   | ALet (id, e1, e2) ->
      let (env', slot) = update id env in
      compile_aexpr e1 env
@@ -175,6 +146,7 @@ let rec compile_aexpr (e : aexpr) (env : env) : instruction list =
         ILabel if_false ]
     @ compile_aexpr e3 env
     @ [ ILabel if_done ]
+  | _ -> failwith "Todavia no se como"
 ;;
 
 let compile_prog (e : aexpr) : string =

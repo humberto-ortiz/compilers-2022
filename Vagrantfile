@@ -72,8 +72,8 @@ Vagrant.configure("2") do |config|
     apt-get install -y opam
     sudo --user=vagrant opam init --yes --shell-setup
     apt-get install -y emacs-nox
+    sudo --user=vagrant opam --yes install merlin tuareg utop menhir
     sudo --user=vagrant opam --yes user-setup install
-    sudo --user=vagrant opam --yes install merlin tuareg utop
     apt-get install -y nasm
 SHELL
 end
