@@ -5,6 +5,7 @@ open Anf
 type reg = 
   | RAX
   | RSP
+  | R11
 
 type arg =
   | Constant of int64
@@ -27,6 +28,7 @@ let reg_to_string r =
   match r with
   | RAX -> "RAX"
   | RSP -> "RSP"
+  | R11 -> "R11"
 
 let arg_to_string (arg) : string =
   match arg with
@@ -103,7 +105,7 @@ let rec compile_aexpr (e : aexpr) (env : env) : instruction list =
     match e with
     | ImmNum n -> Constant (Int64.mul n  2L)
     | ImmId id -> RegOffset (RSP, lookup id env)
-    | ImmBool true -> Constant 0x80000000000001L
+    | ImmBool true -> Constant 0x8000000000000001L
     | ImmBool false -> Constant 0x1L
   in
   match e with
@@ -114,7 +116,8 @@ let rec compile_aexpr (e : aexpr) (env : env) : instruction list =
                  ISub (Reg RAX, Constant 2L)]
   | APrim1 (Not, imm) -> 
      [ IMov (Reg RAX, imm_to_arg imm) ;
-       IXor (Reg RAX, Constant 0x80000000000000L) ] (* esto es un bug *)
+       IMov (Reg R11, Constant 0x8000000000000000L) ;
+       IXor (Reg RAX, Reg R11) ] (* ya esto no es un bug *)
   | APrim2 (Plus, left, right) ->
      [ IMov (Reg RAX, imm_to_arg left) ;
        IAdd (Reg RAX, imm_to_arg right) ]
@@ -137,7 +140,7 @@ let rec compile_aexpr (e : aexpr) (env : env) : instruction list =
      let if_false = gensym "if_false" in
      (* comparacion *)
      [IMov (Reg RAX, imm_to_arg imm) ]
-    @ [ ICmp (Reg RAX, Constant 0L) ; (* esto es un bug *)
+    @ [ ICmp (Reg RAX, Constant 1L) ; (* esto es un bug *)
         IJe if_false ]
     (*  if_true *)
     @ [ ILabel if_true ]
