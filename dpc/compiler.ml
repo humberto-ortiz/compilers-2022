@@ -6,6 +6,7 @@ type reg =
   | RAX
   | RSP
   | R11
+  | RDI
 
 type arg =
   | Constant of int64
@@ -23,12 +24,14 @@ type instruction =
   | ILabel of string
   | ISar of arg * arg
   | IXor of arg * arg
+  | ICall of string
 
 let reg_to_string r =
   match r with
   | RAX -> "RAX"
   | RSP -> "RSP"
   | R11 -> "R11"
+  | RDI -> "RDI"
 
 let arg_to_string (arg) : string =
   match arg with
@@ -56,6 +59,7 @@ let inst_to_string (inst : instruction) : string =
                      arg_to_string b
   | IXor (a, b) -> "\txor " ^ arg_to_string a ^ ", " ^
                      arg_to_string b
+  | ICall label -> "\tcall " ^ label
 
 let asm_to_string (asm : instruction list) : string =
   String.concat "\n" (List.map inst_to_string asm)
@@ -117,7 +121,12 @@ let rec compile_aexpr (e : aexpr) (env : env) : instruction list =
   | APrim1 (Not, imm) -> 
      [ IMov (Reg RAX, imm_to_arg imm) ;
        IMov (Reg R11, Constant 0x8000000000000000L) ;
-       IXor (Reg RAX, Reg R11) ] (* ya esto no es un bug *)
+       IXor (Reg RAX, Reg R11) ] (* aqui todavia hay un bug (! 7) *)
+  | APrim1 (Print, imm) -> 
+     [ IMov (Reg RAX, imm_to_arg imm) ;
+       IMov (Reg RDI, Reg RAX) ;
+       ICall "print"  ]
+
   | APrim2 (Plus, left, right) ->
      [ IMov (Reg RAX, imm_to_arg left) ;
        IAdd (Reg RAX, imm_to_arg right) ]
@@ -156,6 +165,7 @@ let rec compile_aexpr (e : aexpr) (env : env) : instruction list =
 let compile_prog (e : aexpr) : string =
   let prog_string =  asm_to_string (compile_aexpr e []) in
   sprintf "section .text
+extern print
 global our_code_starts_here
 our_code_starts_here:
 " ^ prog_string ^ "

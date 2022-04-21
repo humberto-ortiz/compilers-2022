@@ -14,6 +14,7 @@ rule read =
     | ')' { RPAREN }
     | "add1" { ADD1 }
     | "sub1" { SUB1 }
+    | "print" { PRINT }
     | "let" { LET }
     | "==" { D_EQUAL }
     | '=' { EQUAL }
