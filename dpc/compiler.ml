@@ -19,7 +19,9 @@ type instruction =
   | ISub of arg * arg
   | IImul of arg * arg
   | ICmp of arg * arg
+  | ITest of arg * arg
   | IJe of string
+  | IJz of string
   | IJmp of string
   | ILabel of string
   | ISar of arg * arg
@@ -52,7 +54,10 @@ let inst_to_string (inst : instruction) : string =
                      (arg_to_string b)
   | ICmp (a, b) -> "\tcmp " ^ (arg_to_string a) ^ ", " ^
                      (arg_to_string b)
+  | ITest (a, b) -> "\ttest " ^ (arg_to_string a) ^ ", " ^
+                     (arg_to_string b)
   | IJe label -> "\tje " ^ label
+  | IJz label -> "\tjz " ^ label
   | IJmp label -> "\tjmp " ^ label
   | ILabel label -> label ^ ":"
   | ISar (a, b) -> "\tsar " ^ arg_to_string a ^ ", " ^
@@ -120,6 +125,8 @@ let rec compile_aexpr (e : aexpr) (env : env) : instruction list =
                  ISub (Reg RAX, Constant 2L)]
   | APrim1 (Not, imm) -> 
      [ IMov (Reg RAX, imm_to_arg imm) ;
+       ITest (Reg RAX, Constant 1L) ;
+       IJz "error_not_Boolean" ;
        IMov (Reg R11, Constant 0x8000000000000000L) ;
        IXor (Reg RAX, Reg R11) ] (* aqui todavia hay un bug (! 7) *)
   | APrim1 (Print, imm) -> 
@@ -166,10 +173,22 @@ let compile_prog (e : aexpr) : string =
   let prog_string =  asm_to_string (compile_aexpr e []) in
   sprintf "section .text
 extern print
+extern error
+
+error_not_Boolean:
+        ;; aqui no hay que traquetear con RSP, no llegamos por un call
+        mov RDI, 2 ; primer argumento ERR_NOT_BOOLEAN
+        mov RSI, RAX ; segundo argumento valor erroneo
+        call error
+
 global our_code_starts_here
 our_code_starts_here:
+        push RBP          ; save (previous, caller's) RBP on stack
+        mov RBP, RSP      ; make current RSP the new RBP
 " ^ prog_string ^ "
-        ret\n" 
+        mov RSP, RBP
+        pop RBP
+        ret\n"
 
 (* Some OCaml boilerplate for reading files and command-line arguments *)
 let () =

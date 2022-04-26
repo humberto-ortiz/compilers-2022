@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdint.h>
+#include <stdlib.h>
 
 extern int64_t our_code_starts_here() asm("our_code_starts_here");
 
@@ -24,20 +25,20 @@ const int ERR_NOT_NUMBER = 1;
 const int ERR_NOT_BOOLEAN = 2;
 // other error codes here
 
-void error(int errCode, int val) {
+void error(int errCode, SNAKEVAL val) {
   if (errCode == ERR_NOT_NUMBER) {
-    fprintf(stderr, "Expected number, but got %010x\n", val);
+    fprintf(stderr, "Expected number, but got %#018lx\n", val);
   } else if (errCode == ERR_NOT_BOOLEAN) {
-    fprintf(stderr, "Expected boolean, but got %010x\n", val);
+    fprintf(stderr, "Expected Boolean, but got %#018lx\n", val);
   } else {
-    return;
+    fprintf(stderr, "Unknown error %d, got %#018lx\n", errCode, val);
   }
 
   exit(errCode);
 }
 
 int main(int argc, char** argv) {
-  int64_t result = our_code_starts_here();
+  SNAKEVAL result = our_code_starts_here();
   print(result);
   return 0;
 }
