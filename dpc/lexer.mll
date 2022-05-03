@@ -32,5 +32,6 @@ rule read =
     | "||" { OR }
     | "<=" { LESS_EQUAL }
     | "<" { LESS }
+    | "def" { DEF }
     | letter (letter | digit | '_' )* as lxm { IDENTIFIER lxm }
     | eof { EOF }

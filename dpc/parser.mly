@@ -10,6 +10,7 @@ open Syntax
 %token PRINT
 %token FOO
 %token MAX
+%token DEF
 %token LET
 %token <string> IDENTIFIER
 %token EQUAL
@@ -31,13 +32,21 @@ open Syntax
 
 %left PLUS MINUS TIMES AND OR
 
-%start <expr> start
+%start <program> program
 
 %%
 
 (* reglas aqui *)
-start:
-  | e = expr EOF { e }
+program:
+  | ds = decls e = expr EOF { Program (ds, e) }
+  | e = expr EOF { Program ([], e) }
+
+decls:
+ | d = decl { [d]}
+ | d = decl ds = decls { d::ds }
+
+decl:
+  | DEF id = IDENTIFIER LPAREN arg = IDENTIFIER RPAREN COLON e = expr { DFun (id, arg, e )}
 
 expr:
   | n = NUMBER { Num n }
