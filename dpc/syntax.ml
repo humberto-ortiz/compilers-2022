@@ -2,7 +2,6 @@ type prim1 =
   | Not
   | Add1
   | Sub1
-  | Print
 
 type prim2 =
   | Plus
@@ -10,6 +9,8 @@ type prim2 =
   | Times
   | And
   | Or
+  | Max
+  | Foo
 
 type expr =
   | Num of int64
@@ -19,3 +20,11 @@ type expr =
   | Id of string
   | Let of string * expr * expr
   | If of expr * expr * expr
+  | EApp of string * expr
+
+type decl =
+    (* function name, argument name, body *)
+  | DFun of string *  string      *  expr
+
+type program =
+  | Program of decl list * expr

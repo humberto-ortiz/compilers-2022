@@ -11,3 +11,4 @@ type aexpr =
   | APrim2 of prim2 * immexpr * immexpr
   | ALet of string * aexpr * aexpr
   | AIf of immexpr * aexpr * aexpr
+  | AApp of string * immexpr

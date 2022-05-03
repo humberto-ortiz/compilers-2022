@@ -8,6 +8,7 @@ typedef uint64_t SNAKEVAL;
 const uint64_t BOOL_TAG   = 0x0000000000000001;
 const SNAKEVAL BOOL_TRUE  = 0x8000000000000001; // These must be the same values
 const SNAKEVAL BOOL_FALSE = 0x0000000000000001; // as chosen in compile.ml
+
 SNAKEVAL print(SNAKEVAL val) {
   if ((val & BOOL_TAG) == 0) { // val is even ==> number
     printf("%ld", ((int64_t)(val)) / 2); // shift bits right to remove tag
@@ -37,8 +38,23 @@ void error(int errCode, SNAKEVAL val) {
   exit(errCode);
 }
 
+SNAKEVAL max (SNAKEVAL a, SNAKEVAL b) {
+  if (a > b)
+    return a;
+  else
+    return b;
+}
+
+SNAKEVAL foo(SNAKEVAL a, SNAKEVAL b) {
+ if (a == b)
+   return BOOL_TRUE;
+ else
+   return BOOL_FALSE;
+}
+
 int main(int argc, char** argv) {
   SNAKEVAL result = our_code_starts_here();
   print(result);
+  printf("\n");
   return 0;
 }

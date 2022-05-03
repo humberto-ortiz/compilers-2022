@@ -14,13 +14,15 @@ rule read =
     | ')' { RPAREN }
     | "add1" { ADD1 }
     | "sub1" { SUB1 }
-    | "print" { PRINT }
+    | "foo" { FOO }
+    | "max" { MAX } 
     | "let" { LET }
     | "==" { D_EQUAL }
     | '=' { EQUAL }
     | "in" { IN }
     | "if" { IF }
     | ':' { COLON }
+    | ',' { COMA }
     | "else:" { ELSE }
     | "true" { TRUE }
     | "false" { FALSE }

@@ -7,6 +7,7 @@ type reg =
   | RSP
   | R11
   | RDI
+  | RSI
 
 type arg =
   | Constant of int64
@@ -34,6 +35,7 @@ let reg_to_string r =
   | RSP -> "RSP"
   | R11 -> "R11"
   | RDI -> "RDI"
+  | RSI -> "RSI"
 
 let arg_to_string (arg) : string =
   match arg with
@@ -106,6 +108,9 @@ let rec anfv2 (e : expr) : aexpr =
      let e1id = gensym "_e1" in
      ALet (e1id, anfv2 e1, 
           AIf (ImmId e1id, anfv2 e2, anfv2 e3))
+  | EApp (id, e) -> 
+     let varname = gensym "_app" in
+     ALet (varname, anfv2 e, AApp (id, ImmId varname))
 
 
 let rec compile_aexpr (e : aexpr) (env : env) : instruction list =
@@ -129,11 +134,17 @@ let rec compile_aexpr (e : aexpr) (env : env) : instruction list =
        IJz "error_not_Boolean" ;
        IMov (Reg R11, Constant 0x8000000000000000L) ;
        IXor (Reg RAX, Reg R11) ] (* aqui todavia hay un bug (! 7) *)
-  | APrim1 (Print, imm) -> 
-     [ IMov (Reg RAX, imm_to_arg imm) ;
-       IMov (Reg RDI, Reg RAX) ;
-       ICall "print"  ]
-
+  | AApp (id, imm) -> 
+     [ IMov (Reg RDI, imm_to_arg imm) ;
+       ICall id  ]
+  | APrim2 (Foo, left, right) ->
+     [ IMov (Reg RDI, imm_to_arg left) ;
+       IMov (Reg RSI, imm_to_arg right) ;
+       ICall "foo" ]
+  | APrim2 (Max, left, right) ->
+     [ IMov (Reg RDI, imm_to_arg left) ;
+       IMov (Reg RSI, imm_to_arg right) ;
+       ICall "max" ]
   | APrim2 (Plus, left, right) ->
      [ IMov (Reg RAX, imm_to_arg left) ;
        IAdd (Reg RAX, imm_to_arg right) ]
@@ -174,6 +185,8 @@ let compile_prog (e : aexpr) : string =
   sprintf "section .text
 extern print
 extern error
+extern max
+extern foo
 
 error_not_Boolean:
         ;; aqui no hay que traquetear con RSP, no llegamos por un call
