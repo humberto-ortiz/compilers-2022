@@ -194,6 +194,7 @@ let rec compile_aexpr (e : aexpr) (env : env) : instruction list =
 ;;
 
 let compile_dec dec env =
+  (* almost works - need to add preamble and postamble *)
   match dec with
   | AFun (id, arg, ae) ->
      let insts =
@@ -202,10 +203,9 @@ let compile_dec dec env =
        @ compile_aexpr ae env'
      in
      let dec_string = asm_to_string insts in
-     
+
      id ^ ":\n" ^ dec_string
 
-         
 let rec compile_decs decs env =
   match decs with
   | [] -> ""
