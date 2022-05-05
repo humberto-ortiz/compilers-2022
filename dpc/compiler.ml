@@ -112,6 +112,19 @@ let rec anfv2 (e : expr) : aexpr =
      let varname = gensym "_app" in
      ALet (varname, anfv2 e, AApp (id, ImmId varname))
 
+let anf_dec dec =
+  match dec with
+    | DFun (id, arg, e) -> AFun (id, arg, anfv2 e)
+
+let rec anf_decs decs =
+  match decs with
+    | [] -> []
+    | (dec::decs) -> anf_dec dec :: anf_decs decs
+
+let anf_program (p : program) : aprogram =
+  match p with
+    | Program (decs, e) ->
+       AProgram (anf_decs decs, anfv2 e)
 
 let rec compile_aexpr (e : aexpr) (env : env) : instruction list =
   let imm_to_arg (e : immexpr) : arg =
@@ -180,8 +193,30 @@ let rec compile_aexpr (e : aexpr) (env : env) : instruction list =
   | _ -> failwith "Todavia no se como"
 ;;
 
-let compile_prog (e : aexpr) : string =
-  let prog_string =  asm_to_string (compile_aexpr e []) in
+let compile_dec dec env =
+  match dec with
+  | AFun (id, arg, ae) ->
+     let insts =
+       let (env', slot) = update arg env in
+       [ IMov (RegOffset (RSP, slot), Reg RDI) ]
+       @ compile_aexpr ae env'
+     in
+     let dec_string = asm_to_string insts in
+     
+     id ^ ":\n" ^ dec_string
+
+         
+let rec compile_decs decs env =
+  match decs with
+  | [] -> ""
+  | (dec::decs) -> compile_dec dec env ^ compile_decs decs env
+
+let compile_prog (p : aprogram) : string =
+  match p with
+    | AProgram (decs, ae) ->
+       let decs_string = compile_decs decs [] in
+
+       let prog_string =  asm_to_string (compile_aexpr ae []) in
   sprintf "section .text
 extern print
 extern error
@@ -194,19 +229,21 @@ error_not_Boolean:
         mov RSI, RAX ; segundo argumento valor erroneo
         call error
 
+%s
+
 global our_code_starts_here
 our_code_starts_here:
         push RBP          ; save (previous, caller's) RBP on stack
         mov RBP, RSP      ; make current RSP the new RBP
-" ^ prog_string ^ "
+%s
         mov RSP, RBP
         pop RBP
-        ret\n"
+        ret\n" decs_string prog_string
 
 (* Some OCaml boilerplate for reading files and command-line arguments *)
 let () =
   if 2 = Array.length Sys.argv then
     let input_program = Front.parse_file (Sys.argv.(1)) in
-    let anfed = anfv2 input_program in
+    let anfed = anf_program input_program in
     let program = (compile_prog anfed) in
     printf "%s\n" program;;

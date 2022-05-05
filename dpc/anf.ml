@@ -12,3 +12,10 @@ type aexpr =
   | ALet of string * aexpr * aexpr
   | AIf of immexpr * aexpr * aexpr
   | AApp of string * immexpr
+
+type adecl =
+    (* function name, argument name, body *)
+  | AFun of string * string * aexpr
+
+type aprogram =
+  | AProgram of adecl list * aexpr
