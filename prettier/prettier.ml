@@ -18,11 +18,13 @@ let rec pretty_expr expr =
      pretty_expr e1 ^ ", " ^
      pretty_expr e2 ^
      ")"
-  | _ -> failwith "No se que hacer"
+  | _ -> failwith "Sorry, can't pretty print that yet."
 
 (* Some OCaml boilerplate for reading files and command-line arguments *)
 let () =
-  if 2 = Array.length Sys.argv then
-    let input_program = (Front.parse_file (Sys.argv.(1))) in
-    let program = (pretty_expr input_program) in
-    printf "%s\n" program;;
+  let input_file = (open_in (Sys.argv.(1))) in
+  let lexbuf = Lexing.from_channel input_file in
+  let input_program = Parser.start Lexer.read lexbuf in
+  close_in input_file;
+  let program = (pretty_expr input_program) in
+  printf "%s\n" program;;

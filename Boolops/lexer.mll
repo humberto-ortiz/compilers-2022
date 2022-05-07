@@ -14,15 +14,13 @@ rule read =
     | ')' { RPAREN }
     | "add1" { ADD1 }
     | "sub1" { SUB1 }
-    | "foo" { FOO }
-    | "max" { MAX } 
+    | "print" { PRINT }
     | "let" { LET }
     | "==" { D_EQUAL }
     | '=' { EQUAL }
     | "in" { IN }
     | "if" { IF }
     | ':' { COLON }
-    | ',' { COMA }
     | "else:" { ELSE }
     | "true" { TRUE }
     | "false" { FALSE }
@@ -32,6 +30,5 @@ rule read =
     | "||" { OR }
     | "<=" { LESS_EQUAL }
     | "<" { LESS }
-    | "def" { DEF }
     | letter (letter | digit | '_' )* as lxm { IDENTIFIER lxm }
     | eof { EOF }

@@ -7,7 +7,6 @@ type reg =
   | RSP
   | R11
   | RDI
-  | RSI
 
 type arg =
   | Constant of int64
@@ -35,7 +34,6 @@ let reg_to_string r =
   | RSP -> "RSP"
   | R11 -> "R11"
   | RDI -> "RDI"
-  | RSI -> "RSI"
 
 let arg_to_string (arg) : string =
   match arg with
@@ -108,23 +106,7 @@ let rec anfv2 (e : expr) : aexpr =
      let e1id = gensym "_e1" in
      ALet (e1id, anfv2 e1, 
           AIf (ImmId e1id, anfv2 e2, anfv2 e3))
-  | EApp (id, e) -> 
-     let varname = gensym "_app" in
-     ALet (varname, anfv2 e, AApp (id, ImmId varname))
 
-let anf_dec dec =
-  match dec with
-    | DFun (id, arg, e) -> AFun (id, arg, anfv2 e)
-
-let rec anf_decs decs =
-  match decs with
-    | [] -> []
-    | (dec::decs) -> anf_dec dec :: anf_decs decs
-
-let anf_program (p : program) : aprogram =
-  match p with
-    | Program (decs, e) ->
-       AProgram (anf_decs decs, anfv2 e)
 
 let rec compile_aexpr (e : aexpr) (env : env) : instruction list =
   let imm_to_arg (e : immexpr) : arg =
@@ -147,17 +129,11 @@ let rec compile_aexpr (e : aexpr) (env : env) : instruction list =
        IJz "error_not_Boolean" ;
        IMov (Reg R11, Constant 0x8000000000000000L) ;
        IXor (Reg RAX, Reg R11) ] (* aqui todavia hay un bug (! 7) *)
-  | AApp (id, imm) -> 
-     [ IMov (Reg RDI, imm_to_arg imm) ;
-       ICall id  ]
-  | APrim2 (Foo, left, right) ->
-     [ IMov (Reg RDI, imm_to_arg left) ;
-       IMov (Reg RSI, imm_to_arg right) ;
-       ICall "foo" ]
-  | APrim2 (Max, left, right) ->
-     [ IMov (Reg RDI, imm_to_arg left) ;
-       IMov (Reg RSI, imm_to_arg right) ;
-       ICall "max" ]
+  | APrim1 (Print, imm) -> 
+     [ IMov (Reg RAX, imm_to_arg imm) ;
+       IMov (Reg RDI, Reg RAX) ;
+       ICall "print"  ]
+
   | APrim2 (Plus, left, right) ->
      [ IMov (Reg RAX, imm_to_arg left) ;
        IAdd (Reg RAX, imm_to_arg right) ]
@@ -193,35 +169,11 @@ let rec compile_aexpr (e : aexpr) (env : env) : instruction list =
   | _ -> failwith "Todavia no se como"
 ;;
 
-let compile_dec dec env =
-  (* almost works - need to add preamble and postamble *)
-  match dec with
-  | AFun (id, arg, ae) ->
-     let insts =
-       let (env', slot) = update arg env in
-       [ IMov (RegOffset (RSP, slot), Reg RDI) ]
-       @ compile_aexpr ae env'
-     in
-     let dec_string = asm_to_string insts in
-
-     id ^ ":\n" ^ dec_string
-
-let rec compile_decs decs env =
-  match decs with
-  | [] -> ""
-  | (dec::decs) -> compile_dec dec env ^ compile_decs decs env
-
-let compile_prog (p : aprogram) : string =
-  match p with
-    | AProgram (decs, ae) ->
-       let decs_string = compile_decs decs [] in
-
-       let prog_string =  asm_to_string (compile_aexpr ae []) in
+let compile_prog (e : aexpr) : string =
+  let prog_string =  asm_to_string (compile_aexpr e []) in
   sprintf "section .text
 extern print
 extern error
-extern max
-extern foo
 
 error_not_Boolean:
         ;; aqui no hay que traquetear con RSP, no llegamos por un call
@@ -229,21 +181,19 @@ error_not_Boolean:
         mov RSI, RAX ; segundo argumento valor erroneo
         call error
 
-%s
-
 global our_code_starts_here
 our_code_starts_here:
         push RBP          ; save (previous, caller's) RBP on stack
         mov RBP, RSP      ; make current RSP the new RBP
-%s
+" ^ prog_string ^ "
         mov RSP, RBP
         pop RBP
-        ret\n" decs_string prog_string
+        ret\n"
 
 (* Some OCaml boilerplate for reading files and command-line arguments *)
 let () =
   if 2 = Array.length Sys.argv then
     let input_program = Front.parse_file (Sys.argv.(1)) in
-    let anfed = anf_program input_program in
+    let anfed = anfv2 input_program in
     let program = (compile_prog anfed) in
     printf "%s\n" program;;

@@ -8,9 +8,6 @@ open Syntax
 %token ADD1
 %token SUB1
 %token PRINT
-%token FOO
-%token MAX
-%token DEF
 %token LET
 %token <string> IDENTIFIER
 %token EQUAL
@@ -27,26 +24,17 @@ open Syntax
 %token OR
 %token LESS_EQUAL
 %token LESS
-%token COMA
 %token EOF
 
 %left PLUS MINUS TIMES AND OR
 
-%start <program> program
+%start <expr> start
 
 %%
 
 (* reglas aqui *)
-program:
-  | ds = decls e = expr EOF { Program (ds, e) }
-  | e = expr EOF { Program ([], e) }
-
-decls:
- | d = decl { [d]}
- | d = decl ds = decls { d::ds }
-
-decl:
-  | DEF id = IDENTIFIER LPAREN arg = IDENTIFIER RPAREN COLON e = expr { DFun (id, arg, e )}
+start:
+  | e = expr EOF { e }
 
 expr:
   | n = NUMBER { Num n }
@@ -57,9 +45,7 @@ expr:
   | NOT e = expr { EPrim1 (Not, e) }
   | ADD1 LPAREN e = expr RPAREN  { EPrim1 (Add1, e) } 
   | SUB1 LPAREN e = expr RPAREN  { EPrim1 (Sub1, e) }
-  | id = IDENTIFIER LPAREN e = expr RPAREN { EApp (id, e) }
-  | FOO LPAREN e1 = expr COMA e2 = expr RPAREN { EPrim2 (Foo, e1, e2) } 
-  | MAX LPAREN e1 = expr COMA e2 = expr RPAREN { EPrim2 (Max, e1, e2) } 
+  | PRINT LPAREN e = expr RPAREN { EPrim1 (Print, e) }
   | LET id = IDENTIFIER EQUAL e1 = expr IN e2 = expr { Let (id, e1, e2) }
   | id = IDENTIFIER { Id id }
   | IF e1 = expr COLON e2 = expr ELSE e3 = expr { If (e1, e2, e3) }

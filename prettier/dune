@@ -1,6 +1,5 @@
-(executables
-        (names compiler)
-)
+(executable
+        (name prettier))
 
 (menhir (modules parser))
 
