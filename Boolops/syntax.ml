@@ -10,6 +10,7 @@ type prim2 =
   | Times
   | And
   | Or
+  | Equal
 
 type expr =
   | Num of int64

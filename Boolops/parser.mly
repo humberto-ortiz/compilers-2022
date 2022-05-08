@@ -42,6 +42,7 @@ expr:
   | FALSE { EBool false }
   | e1 = expr AND e2 = expr { EPrim2 (And, e1, e2)}
   | e1 = expr OR e2 = expr { EPrim2 (Or, e1, e2)}
+  | e1 = expr D_EQUAL e2 = expr { EPrim2 (Equal, e1, e2)}
   | NOT e = expr { EPrim1 (Not, e) }
   | ADD1 LPAREN e = expr RPAREN  { EPrim1 (Add1, e) } 
   | SUB1 LPAREN e = expr RPAREN  { EPrim1 (Sub1, e) }

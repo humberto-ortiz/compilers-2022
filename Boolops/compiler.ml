@@ -20,6 +20,8 @@ type instruction =
   | IImul of arg * arg
   | ICmp of arg * arg
   | ITest of arg * arg
+  | IAnd of arg * arg
+  | IOr of arg * arg
   | IJe of string
   | IJz of string
   | IJmp of string
@@ -56,6 +58,10 @@ let inst_to_string (inst : instruction) : string =
                      (arg_to_string b)
   | ITest (a, b) -> "\ttest " ^ (arg_to_string a) ^ ", " ^
                      (arg_to_string b)
+  | IAnd (a, b) -> "\tand " ^ (arg_to_string a) ^ ", " ^
+                      (arg_to_string b)
+  | IOr (a, b) -> "\tor " ^ (arg_to_string a) ^ ", " ^
+                      (arg_to_string b)
   | IJe label -> "\tje " ^ label
   | IJz label -> "\tjz " ^ label
   | IJmp label -> "\tjmp " ^ label
@@ -144,7 +150,43 @@ let rec compile_aexpr (e : aexpr) (env : env) : instruction list =
      [ IMov (Reg RAX, imm_to_arg left) ;
        IImul (Reg RAX, imm_to_arg right) ;
      ISar (Reg RAX, Constant 1L) ]
-  (* ESTE COMPILADOR ESTA ROTO *)
+  (* See table at https://course.ccs.neu.edu/cs4410/lec_tagging-values_notes.html#:~:text=sign%20bit%20unchanged.-,2.5%C2%A0Defining%20logic%20operations%20over%20our%20representations,-Logical%20and%20and *)
+  | APrim2 (And, left, right) ->
+      [
+        (* Move left to RAX *)
+        IMov (Reg RAX, imm_to_arg left) ;
+        (* Directly return the value of a logical AND *)
+        IAnd (Reg RAX, imm_to_arg right) ;
+      ]
+  | APrim2 (Or, left, right) ->
+      [
+        (* Move left to RAX *)
+        IMov (Reg RAX, imm_to_arg left) ;
+        (* Directly return the value of a logical OR *)
+        IOr (Reg RAX, imm_to_arg right) ;
+      ]
+  (* See strategy at https://course.ccs.neu.edu/cs4410/lec_tagging-values_notes.html#:~:text=point%20out%20now.-,2.6,-Defining%20comparisons%20over *)
+  | APrim2 (Equal, left, right) ->
+      let eq_done = gensym "eq_done" in
+      let eq_true = gensym "eq_true" in
+      [
+        (* Move left to RAX *)
+        IMov (Reg RAX, imm_to_arg left) ;
+        (* Do a CMP -- just subtracts and sets flag *)
+        ICmp (Reg RAX, imm_to_arg right) ;
+        (* Assume it's false - for now. *)
+        IMov (Reg RAX, imm_to_arg (ImmBool false)) ;
+        (* If zero flag is set, left - right = 0, so equal. *)
+        IJz eq_true ;
+        (* Jump immediately to prevent executing eq_true if ZF=0 (not-equal). *)
+        IJmp eq_done ;
+        (* Label to set eq_true. *)
+        ILabel eq_true ;
+        IMov (Reg RAX, imm_to_arg (ImmBool true)) ;
+        (* We're 'a done. *)
+        ILabel eq_done ;
+      ]
+  (* ESTE COMPILADOR ESTA ROTO -- not anymore! *)
   | ALet (id, e1, e2) ->
      let (env', slot) = update id env in
      compile_aexpr e1 env
@@ -166,7 +208,7 @@ let rec compile_aexpr (e : aexpr) (env : env) : instruction list =
         ILabel if_false ]
     @ compile_aexpr e3 env
     @ [ ILabel if_done ]
-  | _ -> failwith "Todavia no se como"
+  (* | _ -> failwith "Todavia no se como" *)
 ;;
 
 let compile_prog (e : aexpr) : string =

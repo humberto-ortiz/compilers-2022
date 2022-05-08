@@ -24,6 +24,7 @@ rule read =
     | "else:" { ELSE }
     | "true" { TRUE }
     | "false" { FALSE }
+    | "==" { D_EQUAL }
     | "!=" { NOT_EQ }
     | "!" { NOT }
     | "&&" { AND }
