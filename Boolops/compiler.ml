@@ -114,6 +114,14 @@ let rec anfv2 (e : expr) : aexpr =
           AIf (ImmId e1id, anfv2 e2, anfv2 e3))
 
 
+let include_bool_check (a : arg) =
+  (* Adds some boilerplate to verify the type of an argument. *)
+  [       
+    IMov (Reg RAX, a) ;
+    ITest (Reg RAX, Constant 1L) ;
+    IJz "error_not_Boolean" ;
+  ]
+
 let rec compile_aexpr (e : aexpr) (env : env) : instruction list =
   let imm_to_arg (e : immexpr) : arg =
     (* e tiene que ser un imm *)
@@ -152,6 +160,8 @@ let rec compile_aexpr (e : aexpr) (env : env) : instruction list =
      ISar (Reg RAX, Constant 1L) ]
   (* See table at https://course.ccs.neu.edu/cs4410/lec_tagging-values_notes.html#:~:text=sign%20bit%20unchanged.-,2.5%C2%A0Defining%20logic%20operations%20over%20our%20representations,-Logical%20and%20and *)
   | APrim2 (And, left, right) ->
+      include_bool_check(imm_to_arg left) @
+      include_bool_check(imm_to_arg right) @
       [
         (* Move left to RAX *)
         IMov (Reg RAX, imm_to_arg left) ;
@@ -159,6 +169,8 @@ let rec compile_aexpr (e : aexpr) (env : env) : instruction list =
         IAnd (Reg RAX, imm_to_arg right) ;
       ]
   | APrim2 (Or, left, right) ->
+      include_bool_check(imm_to_arg left) @
+      include_bool_check(imm_to_arg right) @
       [
         (* Move left to RAX *)
         IMov (Reg RAX, imm_to_arg left) ;
