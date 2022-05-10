@@ -1,0 +1,6 @@
+def id(x):
+    let y = add1(x) in
+    let z = sub1(x) in
+    x
+
+id(5)

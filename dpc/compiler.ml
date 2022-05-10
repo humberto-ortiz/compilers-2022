@@ -8,6 +8,7 @@ type reg =
   | R11
   | RDI
   | RSI
+  | RBP
 
 type arg =
   | Constant of int64
@@ -28,6 +29,9 @@ type instruction =
   | ISar of arg * arg
   | IXor of arg * arg
   | ICall of string
+  | IPush of arg
+  | IPop of arg
+  | IRet
 
 let reg_to_string r =
   match r with
@@ -36,6 +40,7 @@ let reg_to_string r =
   | R11 -> "R11"
   | RDI -> "RDI"
   | RSI -> "RSI"
+  | RBP -> "RBP"
 
 let arg_to_string (arg) : string =
   match arg with
@@ -67,6 +72,9 @@ let inst_to_string (inst : instruction) : string =
   | IXor (a, b) -> "\txor " ^ arg_to_string a ^ ", " ^
                      arg_to_string b
   | ICall label -> "\tcall " ^ label
+  | IPush arg -> "\tpush " ^ (arg_to_string arg)
+  | IPop arg -> "\tpop " ^ (arg_to_string arg)
+  | IRet -> "\tret"
 
 let asm_to_string (asm : instruction list) : string =
   String.concat "\n" (List.map inst_to_string asm)
@@ -199,8 +207,14 @@ let compile_dec dec env =
   | AFun (id, arg, ae) ->
      let insts =
        let (env', slot) = update arg env in
-       [ IMov (RegOffset (RSP, slot), Reg RDI) ]
+       [ IPush (Reg RBP) ; 
+         IMov (Reg RBP, Reg RSP) ;
+         ISub (Reg RSP, Constant 8L) ;
+         IMov (RegOffset (RSP, slot), Reg RDI) ]
        @ compile_aexpr ae env'
+       @ [ IMov (Reg RSP, Reg RBP) ;
+           IPop (Reg RBP) ;
+           IRet ]
      in
      let dec_string = asm_to_string insts in
 
