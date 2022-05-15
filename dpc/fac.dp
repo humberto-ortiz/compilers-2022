@@ -1,0 +1,7 @@
+def fac(n):
+    if n == 1:
+      1
+    else:
+      n * fac(sub1(n))
+
+fac(5)
