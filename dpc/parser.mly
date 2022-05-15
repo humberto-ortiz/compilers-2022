@@ -28,6 +28,7 @@ open Syntax
 %token LESS_EQUAL
 %token LESS
 %token COMA
+%token PLUS MINUS TIMES
 %token EOF
 
 %left PLUS MINUS TIMES AND OR
@@ -63,3 +64,8 @@ expr:
   | LET id = IDENTIFIER EQUAL e1 = expr IN e2 = expr { Let (id, e1, e2) }
   | id = IDENTIFIER { Id id }
   | IF e1 = expr COLON e2 = expr ELSE e3 = expr { If (e1, e2, e3) }
+  | LPAREN e = expr RPAREN { e }
+  | l = expr PLUS r = expr { EPrim2 (Plus, l, r) }
+  | l = expr MINUS r = expr { EPrim2 (Minus, l, r) }
+  | l = expr TIMES r = expr { EPrim2 (Times, l, r) }
+  | l = expr D_EQUAL r = expr { EPrim2 (Equal, l, r) }

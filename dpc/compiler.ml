@@ -176,7 +176,14 @@ let rec compile_aexpr (e : aexpr) (env : env) : instruction list =
      [ IMov (Reg RAX, imm_to_arg left) ;
        IImul (Reg RAX, imm_to_arg right) ;
      ISar (Reg RAX, Constant 1L) ]
-  (* ESTE COMPILADOR ESTA ROTO *)
+  | APrim2 (Equal, left, right) ->
+     let eq = gensym "eq" in
+     [ IMov (Reg RAX, imm_to_arg left) ;
+       ICmp (Reg RAX, imm_to_arg right) ;
+       IMov (Reg RAX, Constant 0x8000000000000001L) ;
+       IJe eq ;
+       IMov (Reg RAX, Constant 1L);
+       ILabel eq ]
   | ALet (id, e1, e2) ->
      let (env', slot) = update id env in
      compile_aexpr e1 env
@@ -188,7 +195,7 @@ let rec compile_aexpr (e : aexpr) (env : env) : instruction list =
      let if_false = gensym "if_false" in
      (* comparacion *)
      [IMov (Reg RAX, imm_to_arg imm) ]
-    @ [ ICmp (Reg RAX, Constant 1L) ; (* esto es un bug *)
+    @ [ ICmp (Reg RAX, Constant 0x01L) ; 
         IJe if_false ]
     (*  if_true *)
     @ [ ILabel if_true ]

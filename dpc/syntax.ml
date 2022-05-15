@@ -11,6 +11,7 @@ type prim2 =
   | Or
   | Max
   | Foo
+  | Equal
 
 type expr =
   | Num of int64

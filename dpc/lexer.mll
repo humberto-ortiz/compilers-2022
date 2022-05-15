@@ -21,9 +21,9 @@ rule read =
     | '=' { EQUAL }
     | "in" { IN }
     | "if" { IF }
+    | "else:" { ELSE }
     | ':' { COLON }
     | ',' { COMA }
-    | "else:" { ELSE }
     | "true" { TRUE }
     | "false" { FALSE }
     | "!=" { NOT_EQ }
@@ -33,5 +33,6 @@ rule read =
     | "<=" { LESS_EQUAL }
     | "<" { LESS }
     | "def" { DEF }
+    | '*' { TIMES }
     | letter (letter | digit | '_' )* as lxm { IDENTIFIER lxm }
     | eof { EOF }
