@@ -161,12 +161,14 @@ let rec compile_aexpr (e : aexpr) (env : env) : instruction list =
   (* See table at https://course.ccs.neu.edu/cs4410/lec_tagging-values_notes.html#:~:text=sign%20bit%20unchanged.-,2.5%C2%A0Defining%20logic%20operations%20over%20our%20representations,-Logical%20and%20and *)
   | APrim2 (And, left, right) ->
       include_bool_check(imm_to_arg left) @
+      [
+        (* save left *)
+        IMov (Reg R11, Reg RAX)
+      ] @
       include_bool_check(imm_to_arg right) @
       [
-        (* Move left to RAX *)
-        IMov (Reg RAX, imm_to_arg left) ;
         (* Directly return the value of a logical AND *)
-        IAnd (Reg RAX, imm_to_arg right) ;
+        IAnd (Reg RAX, Reg R11) ;
       ]
   | APrim2 (Or, left, right) ->
       include_bool_check(imm_to_arg left) @
